@@ -1,0 +1,12 @@
+﻿# секретики
+.env
+
+# мусор.
+bin/
+obj/
+
+.idea/
+.vs/
+*.user
+*.suo
+*.vscode/
