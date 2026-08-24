@@ -1,41 +1,23 @@
-﻿// 76561198766495481 - TOVARISCH OUUI
-// 76561198737847080 - OUIKZ
-// 76561198983532025 - VoSdUh
-// 76561198739546386 - VoSdUhDS (KZ)
-// 76561199023190441 - froks
-// 76561199104543540 - Hamster44
-// 76561199173118241 - Ishtar_1518
-// 76561199749895389 - Ishtar_1517 (KZ)
-// 76561199238917698 - Nion
-// 76561199419663340 - Inn0_0kentiy
-
-using SteamChecker;
-
-var steamIdsDict = new Dictionary<string, string>()
-{
-    { "76561198766495481", "Дима" },
-    { "76561198737847080", "Дима-казах" },
-    { "76561198983532025", "Ваня" },
-    { "76561198739546386", "Ваня-казах" },
-    { "76561199023190441", "Макс" },
-    { "76561199104543540", "Юра" },
-    { "76561199173118241", "Влад" },
-    { "76561199749895389", "Влад-казах" },
-    { "76561199238917698", "Никита" },
-    { "76561199419663340", "Миша" }
-};
+﻿using SteamChecker;
 
 var gameExtraInfoDict = new Dictionary<string, string?>();
 
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load(); // подгрузка данных из '.env'.
 var steamService = new SteamService();
 
 using CancellationTokenSource cts = new CancellationTokenSource();
 
-TimeSpan interval = TimeSpan.FromSeconds(5);
-using PeriodicTimer timer = new PeriodicTimer(interval);
-
-Console.WriteLine("Я запущен! Погнали чекать полбовчан...");
+// начало программы.
+var steamIds = await SetPlayersToCheck();
+if (steamIds.Count == 0)
+{
+    Console.WriteLine("Вы ничего не ввели! Мне незачем работать. Покеда!");
+    return;
+}
+else
+{
+    Console.WriteLine("Я запущен! Погнали чекать...");
+}
 
 Task waitOffTask = Task.Run(() =>
 {
@@ -43,12 +25,15 @@ Task waitOffTask = Task.Run(() =>
     cts.Cancel();
 });
 
+TimeSpan interval = TimeSpan.FromSeconds(5);
+using PeriodicTimer timer = new PeriodicTimer(interval);
+
 try
 {
     while (await timer.WaitForNextTickAsync(cts.Token))
     {
         Console.WriteLine("Поиск...");
-        await CheckSteamPlayersStatus(steamIdsDict.Keys.ToArray());
+        await CheckSteamPlayersStatus(steamIds);
     }
 }
 catch (OperationCanceledException)
@@ -62,58 +47,94 @@ catch (Exception e)
 
 Console.WriteLine("Программа завершена. Покеда!");
 
-async Task CheckSteamPlayersStatus(params string[] steamIds)
+async Task<List<string>> SetPlayersToCheck()
 {
-    var anybodyNewPlayed = false;
+    List<string> steamIds = new();
     
-    var steamPlayers = await steamService.GetSteamPlayer(steamIds);
+    Console.WriteLine("Ввод SteamID игроков, которых вы хотите проверять.");
 
-    if (gameExtraInfoDict.Count == 0)
+    while (true)
     {
-        foreach (var steamPlayer in steamPlayers)
+        Console.WriteLine("*введите 'выход' как закончите ввод игроков...*");
+        
+        Console.Write("SteamID: ");
+        string? steamId = Console.ReadLine();
+        
+        if (string.IsNullOrEmpty(steamId))
         {
-            gameExtraInfoDict.Add(steamPlayer.SteamId, steamPlayer.GameExtraInfo);
-            
-            if (steamPlayer.GameExtraInfo != null)
+            Console.WriteLine("Введите хоть что-то!");
+            continue;
+        }
+        else if (steamId.ToLower() == "выход")
+        {
+            break;
+        }
+
+        if (steamIds.Contains(steamId))
+        {
+            Console.WriteLine("Этот игрок уже добавлен!");
+            continue;
+        }
+        
+        try
+        {
+            SteamPlayer? steamPlayer = (await steamService.GetSteamPlayer(steamId)).FirstOrDefault();
+            if (steamPlayer is null)
             {
-                Console.WriteLine($"{steamIdsDict[steamPlayer.SteamId]} играет в {steamPlayer.GameExtraInfo}!");
-                anybodyNewPlayed = true;
+                Console.WriteLine("Игрока с таким SteamID не существует!");
+            }
+            else
+            {
+                steamIds.Add(steamId);
+                Console.WriteLine($"{steamPlayer.PersonaName} добавлен!");
             }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine("Что-то пошло не так...");
+            Console.WriteLine(e.Message);
+        }
     }
-    else
+    
+    Console.WriteLine("Ввод игроков закончен!");
+    return steamIds;
+}
+
+async Task CheckSteamPlayersStatus(List<string> steamIds)
+{
+    var anybodyNewPlayed = false;
+    var steamPlayers = await steamService.GetSteamPlayer(string.Join(",", steamIds));
+
+    foreach (var steamPlayer in steamPlayers)
     {
-        foreach (var steamPlayer in steamPlayers)
+        if (gameExtraInfoDict.TryGetValue(steamPlayer.SteamId, out string? previousGame))
         {
             if (steamPlayer.GameExtraInfo is null)
             {
                 gameExtraInfoDict[steamPlayer.SteamId] = null;
             }
-            else if (gameExtraInfoDict[steamPlayer.SteamId] != steamPlayer.GameExtraInfo)
+            else if (previousGame != steamPlayer.GameExtraInfo)
             {
-                Console.WriteLine($"{steamIdsDict[steamPlayer.SteamId]} играет в {steamPlayer.GameExtraInfo}!");
+                Console.WriteLine($"{steamPlayer.PersonaName} играет в {steamPlayer.GameExtraInfo}!");
                 gameExtraInfoDict[steamPlayer.SteamId] = steamPlayer.GameExtraInfo;
                 
                 anybodyNewPlayed = true;
+            }
+        }
+        else
+        {
+            gameExtraInfoDict.Add(steamPlayer.SteamId, steamPlayer.GameExtraInfo);
+            
+            if (steamPlayer.GameExtraInfo != null)
+            {
+                Console.WriteLine($"{steamPlayer.PersonaName} играет в {steamPlayer.GameExtraInfo}!");
+                anybodyNewPlayed = true;    
             }
         }
     }
 
     if (!anybodyNewPlayed)
     {
-        Console.WriteLine("Никто не запустил игру.");
+        Console.WriteLine("Никто не запустил новую игру.");
     }
 }
-
-
-
-// SteamPlayer steamPlayer = await steamService.GetSteamPlayer("76561198766495481");
-// Console.WriteLine($"{steamPlayer.PersonaName}: {steamPlayer.SteamId}");
-
-// // чисто чтобы найти SteamID полбовчан. удалить.
-// List<SteamFriend> steamFriends = await steamService.GetFriendList("76561198737847080");
-// foreach (var steamFriend in steamFriends)
-// {
-//     var player = await steamService.GetSteamPlayer(steamFriend.SteamId);
-//     Console.WriteLine($"{player.SteamId} - {player.PersonaName}");
-// }

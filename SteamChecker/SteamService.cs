@@ -9,7 +9,6 @@ public class SteamService
     
     private readonly string _steamApiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY") 
                                            ?? throw new InvalidOperationException("steamApiKey is null");
-    
     public async Task<List<SteamPlayer>> GetSteamPlayer(params string[] steamId)
     {
         if (steamId.Length == 0)
@@ -24,7 +23,7 @@ public class SteamService
         List<SteamPlayer>? steamPlayers = response?.Response?.Players;
         
         if (steamPlayers is null)
-            throw new HttpRequestException("no response or players not found");
+            throw new HttpRequestException("no response");
         return steamPlayers;
     }
 
