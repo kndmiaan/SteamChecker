@@ -1,4 +1,6 @@
 ﻿using SteamChecker;
+using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 
 DotNetEnv.Env.TraversePath().Load();
 
@@ -6,6 +8,11 @@ var steamService = new SteamService(DotNetEnv.Env.GetString("STEAM_API_KEY"));
 using var cts = new CancellationTokenSource();
 var timeSpan = new TimeSpan(0, 0, 2);
 using var timer = new PeriodicTimer(timeSpan);
+
+var botToken = DotNetEnv.Env.GetString("BOT_TOKEN");
+var bot = new TelegramBotClient(botToken, null, cts.Token);
+
+var chatId = DotNetEnv.Env.GetString("CHAT_ID");
 
 Dictionary<string, string> players;
 try
@@ -47,7 +54,7 @@ try
         {
             await CheckPlayersStatusAsync();
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (ex is HttpRequestException || ex is RequestException)
         {
             Commands.Error(ex.Message);
         }
@@ -63,13 +70,14 @@ async Task CheckPlayersStatusAsync()
 {
     if (players.Count == 0) return;
 
-    List<SteamPlayer>? steamPlayers = await steamService.GetPlayerSummariesAsync(players.Keys.ToArray());
+    List<SteamPlayer> steamPlayers = await steamService.GetPlayerSummariesAsync(players.Keys.ToArray());
 
     foreach (SteamPlayer player in steamPlayers)
     {
         if (player.GameExtraInfo is not null && lastGames[player.SteamId] != player.GameExtraInfo)
         {
-            Console.WriteLine($"[{DateTime.Now.ToLongTimeString()}]: {players[player.SteamId]} is playing {player.GameExtraInfo}!");
+            await bot.SendMessage(chatId, $"{players[player.SteamId]} играет в {player.GameExtraInfo}!");
+            Console.WriteLine($"[{DateTime.Now.ToLongTimeString()}]: {players[player.SteamId]} играет в {player.GameExtraInfo}!");
         }
 
         lastGames[player.SteamId] = player.GameExtraInfo;
