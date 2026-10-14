@@ -1,5 +1,6 @@
 ﻿using SteamChecker;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Exceptions;
 
 DotNetEnv.Env.TraversePath().Load();
@@ -76,7 +77,7 @@ async Task CheckPlayersStatusAsync()
     {
         if (player.GameExtraInfo is not null && lastGames[player.SteamId] != player.GameExtraInfo)
         {
-            await bot.SendMessage(chatId, $"{players[player.SteamId]} играет в {player.GameExtraInfo}!");
+            await bot.SendMessage(chatId, $"<b>{players[player.SteamId]}</b> играет в <b>{player.GameExtraInfo}</b>!", ParseMode.Html);
             Console.WriteLine($"[{DateTime.Now.ToLongTimeString()}]: {players[player.SteamId]} играет в {player.GameExtraInfo}!");
         }
 
