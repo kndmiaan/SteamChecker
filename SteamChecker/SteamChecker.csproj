@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SteamChecker.Core\SteamChecker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="steamIds.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

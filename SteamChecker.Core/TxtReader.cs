@@ -1,6 +1,6 @@
-﻿namespace SteamChecker
+﻿namespace SteamChecker.Core
 {
-    internal static class TxtReader
+    public static class TxtReader
     {
         private static string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 

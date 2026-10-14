@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="SteamChecker.Core/SteamChecker.Core.csproj" Id="00352460-31bf-4628-9a80-d09aa7ace91c" />
+  <Project Path="SteamChecker.TelegramBot/SteamChecker.TelegramBot.csproj" Id="f5826b33-e122-47a3-aeb6-8900a7923872" />
   <Project Path="SteamChecker/SteamChecker.csproj" />
 </Solution>

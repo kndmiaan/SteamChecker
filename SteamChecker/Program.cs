@@ -1,4 +1,4 @@
-﻿using SteamChecker;
+﻿using SteamChecker.Core;
 
 DotNetEnv.Env.TraversePath().Load();
 

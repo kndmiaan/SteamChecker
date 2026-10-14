@@ -1,4 +1,4 @@
-﻿namespace SteamChecker;
+﻿namespace SteamChecker.Core;
 
 public class ResponseWrapper
 {
