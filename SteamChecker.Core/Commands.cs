@@ -1,6 +1,6 @@
-﻿namespace SteamChecker
+﻿namespace SteamChecker.Core
 {
-    internal static class Commands
+    public static class Commands
     {
         public static void Error(string message)
         {

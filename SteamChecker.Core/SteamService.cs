@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace SteamChecker
+namespace SteamChecker.Core
 {
-    internal class SteamService
+    public class SteamService
     {
         private static readonly HttpClient _httpClient = new();
         private static readonly JsonSerializerOptions _options = new()
