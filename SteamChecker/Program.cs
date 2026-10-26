@@ -28,6 +28,8 @@ if (players.Count == 0) Commands.Warning("You haven't entered any Steam ID in 's
 Dictionary<string, string?> lastGames = new Dictionary<string, string?>();
 foreach (string id in players.Keys)
 {
+    if (players[id] is null && steamService.GetPlayerSummariesAsync(id).Result.FirstOrDefault() is { } player)
+        players[id] = player.PersonaName;
     lastGames[id] = null;
 }
 
