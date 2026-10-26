@@ -9,13 +9,17 @@
             string path = Path.Combine(baseDir, fileName);
             using StreamReader reader = new(path, true);
 
-            Dictionary<string, string> dict = new();
+            Dictionary<string, string?> dict = new();
 
             while (await reader.ReadLineAsync() is { } line)
             {
                 string[] splittedLine = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
-                if (splittedLine.Length != 2) throw new FormatException($"{fileName}: Incorrect 'key value' format!");
-                else dict[splittedLine[0]] = splittedLine[1];
+                if (splittedLine.Length == 1)
+                {
+                    dict[splittedLine[0]] = null;
+                }
+                else
+                    dict[splittedLine[0]] = splittedLine[1];
             }
 
             return dict;

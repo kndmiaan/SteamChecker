@@ -13,7 +13,7 @@ public class SteamPlayersContainer
 public class SteamPlayer
 {
     public required string SteamId { get; set; }
-    //public required string PersonaName { get; set; }
+    public required string PersonaName { get; set; }
     //public int PersonaState { get; set; }
     public string? GameExtraInfo { get; set; }
 }
